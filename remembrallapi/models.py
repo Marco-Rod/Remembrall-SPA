@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import backref
 
 Base = declarative_base()
 db = SQLAlchemy()
@@ -76,21 +77,27 @@ class Plan(db.Model):
     participants_pay = db.Column(db.Numeric)
     type_pay = db.Column(db.Integer)
     owner_id = db.Column(db.Integer, ForeignKey('users.id'))
-    #users = relationship("User", secondary=User)
+    users = db.relationship("User", secondary='plans_users', backref='Plan')
+    owner = db.relationship("User", backref="plans", lazy=False)
     #pays = db.relationship('Plan', backref='pay', lazy=False)
 
     def to_dict(self):
+        print(self.owner.name)
         return dict(
             name = self.name,
             date_on = self.date_on,
-            pay = self.pay,
+            pay = str(self.pay),
             card_number = self.card_number,
             participants_number = self.participants_number,
             status = self.status,
-            participants_pay = self.participants_pay,
-            type_pay=self.type_pay,
-            owner = self.owner
-            #users = [user.to_dict() for user in self.users]
+            participants_pay = str(self.participants_pay),
+            type_pay=str(self.type_pay),
+            owner_id = self.owner_id,
+            users = [user.to_dict() for user in self.users],
+            owner = {
+                'id' : self.owner.id,
+                'name' : self.owner.name
+                }
         )
 
 

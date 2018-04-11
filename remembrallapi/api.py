@@ -32,4 +32,8 @@ def user(id):
     user = User.query.get(id)
     return jsonify({ 'user': user.to_dict() })
 
-
+@api.route('/plans', methods=['GET', 'POST'])
+def fetch_plans():
+    if request.method == 'GET':
+        plans = Plan.query.all()
+        return jsonify({ 'plans': [p.to_dict() for p in plans] })
