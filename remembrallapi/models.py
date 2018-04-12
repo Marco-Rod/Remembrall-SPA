@@ -103,6 +103,7 @@ class Plan(db.Model):
 
 class Pay(db.Model):
     __tablename__ = 'pays'
+    
     id = db.Column(db.Integer, primary_key=True)
     make_pays = db.Column(db.Boolean)
     number_pays = db.Column(db.Integer)
@@ -115,8 +116,8 @@ class Pay(db.Model):
             make_pay = self.make_pays,
             number_pays = self.number_pays,
             pay_to = self.pay_to,
-            participant = self.participant,
-            plan = self.plan
+            participant = self.participant_id,
+            plan = self.plan_id
         )
 
 

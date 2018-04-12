@@ -37,3 +37,10 @@ def fetch_plans():
     if request.method == 'GET':
         plans = Plan.query.all()
         return jsonify({ 'plans': [p.to_dict() for p in plans] })
+
+
+@api.route('/pays', methods=['GET', 'POST'])
+def fetch_pays():
+    if request.method == 'GET':
+        pays = Pay.query.all()
+        return jsonify({ 'pays': [p.to_dict() for p in pays] })
