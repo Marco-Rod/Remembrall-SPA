@@ -6,41 +6,44 @@ REST requests and responses
 from flask import Blueprint, jsonify, request
 from remembrallapi.models import db, User, Plan, Pay, PlanUser
 
-api = Blueprint('api', __name__)
+api = Blueprint("api", __name__)
 
 
-@api.route('/users', methods=['GET', 'POST'])
+@api.route("/users", methods=["GET", "POST"])
 def fetch_users():
-    if request.method == 'GET':
+    if request.method == "GET":
         users = User.query.all()
-        return jsonify({ 'users': [u.to_dict() for u in users] })
-    elif request.method == 'POST':
+        return jsonify({"users": [u.to_dict() for u in users]})
+
+    elif request.method == "POST":
         data = request.get_json()
         user = User(
-            name=data['name'],
-            last_name=data['last_name'],
-            email=data['email'],
-            password=data['password'],
-            avatar=data['avatar']
+            name=data["name"],
+            last_name=data["last_name"],
+            email=data["email"],
+            password=data["password"],
+            avatar=data["avatar"],
         )
         db.session.add(user)
         db.session.commit()
-        return jsonify(user.to_dict()),201
+        return jsonify(user.to_dict()), 201
 
-@api.route('/user/<int:id>/', methods=['GET'])
+
+@api.route("/user/<int:id>/", methods=["GET"])
 def user(id):
     user = User.query.get(id)
-    return jsonify({ 'user': user.to_dict() })
+    return jsonify({"user": user.to_dict()})
 
-@api.route('/plans', methods=['GET', 'POST'])
+
+@api.route("/plans", methods=["GET", "POST"])
 def fetch_plans():
-    if request.method == 'GET':
+    if request.method == "GET":
         plans = Plan.query.all()
-        return jsonify({ 'plans': [p.to_dict() for p in plans] })
+        return jsonify({"plans": [p.to_dict() for p in plans]})
 
 
-@api.route('/pays', methods=['GET', 'POST'])
+@api.route("/pays", methods=["GET", "POST"])
 def fetch_pays():
-    if request.method == 'GET':
+    if request.method == "GET":
         pays = Pay.query.all()
-        return jsonify({ 'pays': [p.to_dict() for p in pays] })
+        return jsonify({"pays": [p.to_dict() for p in pays]})
