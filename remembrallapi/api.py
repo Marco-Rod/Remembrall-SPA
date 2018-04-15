@@ -4,7 +4,7 @@ REST requests and responses
 """
 
 from flask import Blueprint, jsonify, request
-from remembrallapi.models import db, User, Plan, Pay, PlanUser
+from remembrallapi.models import db, User, Plan, Payment, PlanUser
 
 api = Blueprint("api", __name__)
 
@@ -42,8 +42,20 @@ def fetch_plans():
         return jsonify({"plans": [p.to_dict() for p in plans]})
 
 
-@api.route("/pays", methods=["GET", "POST"])
+@api.route("/plan/<int:id>/", methods=["GET"])
+def plan(id):
+    plan = Plan.query.get(id)
+    return jsonify({"plan": plan.to_dict()})
+
+
+@api.route("/payments", methods=["GET", "POST"])
 def fetch_pays():
     if request.method == "GET":
-        pays = Pay.query.all()
-        return jsonify({"pays": [p.to_dict() for p in pays]})
+        payments = Payment.query.all()
+        return jsonify({"payments": [p.to_dict() for p in payments]})
+
+
+@api.route("/payment/<int:id>/", methods=["GET"])
+def pay(id):
+    payment = Payment.query.all()
+    return jsonify({"payment": pay.to_dict()})

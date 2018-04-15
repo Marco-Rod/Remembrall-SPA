@@ -7,7 +7,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 import remembrallapi.config
 from remembrallapi.application import create_app
-from remembrallapi.models import db, User, Pay, Plan, PlanUser
+from remembrallapi.models import db, User, Payment, Plan, PlanUser
 
 app = create_app()
 DATABASE_URI = getattr(remembrallapi.config, "SQLALCHEMY_DATABASE_URI", "")
@@ -23,7 +23,7 @@ manager.add_command("db", MigrateCommand)
 
 @manager.shell
 def shell_ctx():
-    return dict(app=app, db=db, User=User, Pay=Pay, Plan=Plan, plan_user=plan_user)
+    return dict(app=app, db=db, User=User, Payment=Payment, Plan=Plan, plan_user=plan_user)
 
 
 if __name__ == "__main__":

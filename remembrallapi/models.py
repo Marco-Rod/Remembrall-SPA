@@ -74,7 +74,7 @@ class Plan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     date_on = db.Column(db.DateTime)
-    pay = db.Column(db.Float)
+    payment = db.Column(db.Float)
     card_number = db.Column(db.Text)
     participants_number = db.Column(db.Integer)
     status = db.Column(db.Boolean)
@@ -90,7 +90,7 @@ class Plan(db.Model):
         return dict(
             name=self.name,
             date_on=self.date_on,
-            pay=str(self.pay),
+            payment=str(self.payment),
             card_number=self.card_number,
             participants_number=self.participants_number,
             status=self.status,
@@ -102,21 +102,21 @@ class Plan(db.Model):
         )
 
 
-class Pay(db.Model):
-    __tablename__ = "pays"
+class Payment(db.Model):
+    __tablename__ = "payments"
 
     id = db.Column(db.Integer, primary_key=True)
-    make_pays = db.Column(db.Boolean)
+    make_payments = db.Column(db.Boolean)
     number_pays = db.Column(db.Integer)
-    pay_to = db.Column(db.DateTime)
+    payment_to = db.Column(db.DateTime)
     participant_id = db.Column(db.Integer, ForeignKey("users.id"))
     plan_id = db.Column(db.Integer, ForeignKey("plans.id"))
 
     def to_dict(self):
         return dict(
-            make_pay=self.make_pays,
-            number_pays=self.number_pays,
-            pay_to=self.pay_to,
+            make_payments=self.make_payments,
+            number_payments=self.number_payments,
+            payment_to=self.payment_to,
             participant=self.participant_id,
             plan=self.plan_id,
         )
