@@ -57,5 +57,5 @@ def fetch_pays():
 
 @api.route("/payment/<int:id>/", methods=["GET"])
 def pay(id):
-    payment = Payment.query.all()
+    payment = Payment.query.get(id)
     return jsonify({"payment": pay.to_dict()})
