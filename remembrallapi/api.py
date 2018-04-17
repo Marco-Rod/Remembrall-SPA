@@ -3,7 +3,7 @@ Provides the API endpoints for consuming and producing
 REST requests and responses
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from remembrallapi.models import db, User, Plan, Payment, PlanUser
 
 api = Blueprint("api", __name__)
@@ -12,8 +12,32 @@ api = Blueprint("api", __name__)
 @api.route("/users", methods=["GET", "POST"])
 def fetch_users():
     if request.method == "GET":
+        url = '/users'
+        start = int(request.args.get('start', 1))
+        limit = int(request.args.get('limit', 20))
         users = User.query.all()
-        return jsonify({"users": [u.to_dict() for u in users]})
+        count = len(users)
+        if (count < start):
+            abort(404)
+        obj = {}
+        obj["start"] = start
+        obj["limit"] = limit
+        obj["count"] = 1
+        if start == 1:
+            obj['previous'] = ''
+        else:
+            start_copy = max(1, start - limit)
+            limit_copy = start - 1
+            obj['previous'] = url + \
+                '?start=%d&limit=%d' % (start_copy, limit_copy)
+        if start + limit > count:
+            obj['next'] = ''
+        else:
+            start_copy = start + limit
+            obj['next'] = url + '?start=%d&limit=%d' % (start_copy, limit)
+        users_data = [u.to_dict() for u in users]
+        obj["users"] = users_data[(start - 1):(start - 1 + limit)]
+        return jsonify(obj)
 
     elif request.method == "POST":
         data = request.get_json()
