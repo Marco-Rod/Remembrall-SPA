@@ -12,14 +12,14 @@ api = Blueprint("api", __name__)
 @api.route("/users", methods=["GET", "POST"])
 def fetch_users():
     if request.method == "GET":
+        obj = {}
         url = '/users'
         start = int(request.args.get('start', 1))
         limit = int(request.args.get('limit', 20))
         users = User.query.all()
         count = len(users)
         if (count < start):
-            abort(404)
-        obj = {}
+            return jsonify(obj)
         obj["start"] = start
         obj["limit"] = limit
         obj["count"] = 1
