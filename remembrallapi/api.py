@@ -53,11 +53,18 @@ def fetch_users():
         return jsonify(user.to_dict()), 201
 
 
-@api.route("/user/<int:id>/", methods=["GET"])
+@api.route("/user/<int:id>/", methods=["GET", "PATCH"])
 def user(id):
-    user = User.query.get(id)
-    return jsonify({"user": user.to_dict()})
+    if request.method == "GET":
+        user = User.query.get(id)
+        return jsonify({"user": user.to_dict()})
 
+    elif request.method == "PATCH":
+        data = request.get_json()
+        user = User.query.get(id)
+        user.email = data["email"]
+        db.session.commit()
+        return jsonify(user.to_dict())
 
 @api.route("/plans", methods=["GET", "POST"])
 def fetch_plans():
@@ -89,13 +96,14 @@ def fetch_plans():
         return jsonify(obj) 
     elif request.method == "POST":
         data = request.get_json()
+        pay_participant = data["payment"] / data["participants_number"]
         plan = Plan(
             name = data["name"],
             payment = data["payment"],
             card_number = data["card_number"],
             participants_number = data["participants_number"],
             status = data["status"],
-            participants_pay = data["participants_pay"],
+            participants_pay = pay_participant,
             type_pay = data["type_pay"],
             owner_id = data["owner_id"],
         )
@@ -103,18 +111,41 @@ def fetch_plans():
         db.session.commit()
         return jsonify(plan.to_dict()), 201
 
-@api.route("/plan/<int:id>/", methods=["GET"])
+@api.route("/plan/<int:id>/", methods=["GET", "PATCH"])
 def plan(id):
-    plan = Plan.query.get(id)
-    return jsonify({"plan": plan.to_dict()})
+    if request.method == "GET":
+        plan = Plan.query.get(id)
+        return jsonify({"plan": plan.to_dict()})
+    elif request.method == "PATCH":
+        plan = Plan.query.get(id)
+        data = request.get_json()
+        pay_participant = data["payment"] / data["participants_number"]
+        plan.name = data["name"]
+        plan.payment = data["payment"]
+        plan.card_number = data["card_number"]
+        plan.participants_number = data["participants_number"]
+        plan.status = data["status"]
+        plan.participants_pay = pay_participant
+        plan.type_pay = data["type_pay"]
+        plan.owner_id = data["owner_id"]
+        db.session.commit()
+        return jsonify(plan.to_dict())
 
+@api.route("/plan/<int:id>/add_participants/", methods=["PATCH"])
+def add_participants(id):
+    plan = Plan.query.get(id)
+    data = request.get_json()
+    for user in data["id"]:
+        user_id = User.query.get(user)
+        plan.users.append(user_id)
+    db.session.commit()
+    return jsonify(plan.to_dict())
 
 @api.route("/payments", methods=["GET", "POST"])
 def fetch_pays():
     if request.method == "GET":
         payments = Payment.query.all()
         return jsonify({"payments": [p.to_dict() for p in payments]})
-
 
 @api.route("/payment/<int:id>/", methods=["GET"])
 def pay(id):
