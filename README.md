@@ -7,6 +7,7 @@
 ### SQLAlchemy 1.2.6
 ### requests 2.18.4
 ### pprint 0.1
+### PyJWT==1.6.4
 
 ## Create and activate Virtualenv
 

@@ -5,11 +5,68 @@ REST requests and responses
 
 from flask import Blueprint, jsonify, request, abort
 from remembrallapi.models import db, User, Plan, Payment, PlanUser
-
+from remembrallapi.config import BaseConfig
+from functools import wraps  
+from datetime import datetime, timedelta
+import jwt
 api = Blueprint("api", __name__)
 
+def token_required(f):
+    @wraps(f)
+    def _verify(*args, **kwargs):
+        auth_headers = request.headers.get('Authorization','').split()
 
-@api.route("/users", methods=["GET", "POST"])
+        invalid_msg = {
+            'message': 'Invalid token. Registerarion and / or authentication required',
+            'authenticated': False
+        }
+        expired_msg = {
+            'message': 'Expired token. Reauthentication required.',
+            'authenticated': False
+        }
+
+        if len(auth_headers) !=2:
+            return jsonify(invalid_msg), 401
+        try:
+            token = auth_headers[1]
+            data = jwt.decode(token, BaseConfig.SECRET_KEY)
+            user = User.query.filter_by(email=data['sub']).first()
+            if not user:
+                raise RuntimeError('User not found')
+            return f(user, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            return jsonify(expired_msg), 401
+        except (jwt.InvalidTokenError, Exception) as e:
+            print(e)
+            return jsonify(invalid_msg), 401
+    return _verify
+
+@api.route("/register", methods=["POST"])
+def register():
+    data = request.get_json(silent=True)
+    user = User(
+        email=data["email"],
+        password=data["password"],
+    )
+    db.session.add(user)
+    db.session.commit()
+    return jsonify(user.to_dict()), 201
+
+@api.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    user = User.authenticate(**data)
+
+    if not user:
+        return jsonify({'message': 'Invalid credentials', 'authenticated': False}, 401)
+    token = jwt.encode({
+        'sub': user.email,
+        'iat': datetime.utcnow(),
+        'exp': datetime.utcnow() + timedelta(minutes=30)},
+        BaseConfig.SECRET_KEY)
+    return jsonify({'token': token.decode('UTF-8') })
+
+@api.route("/users", methods=["GET"])
 def fetch_users():
     if request.method == "GET":
         obj = {}
@@ -39,19 +96,6 @@ def fetch_users():
         obj["users"] = users_data[(start - 1):(start - 1 + limit)]
         return jsonify(obj)
 
-    elif request.method == "POST":
-        data = request.get_json(silent=True)
-        user = User(
-            name=data["name"],
-            last_name=data["last_name"],
-            email=data["email"],
-            password=data["password"],
-            avatar=data["avatar"],
-        )
-        db.session.add(user)
-        db.session.commit()
-        return jsonify(user.to_dict()), 201
-
 
 @api.route("/user/<int:id>/", methods=["GET", "PATCH"])
 def user(id):
@@ -66,50 +110,52 @@ def user(id):
         db.session.commit()
         return jsonify(user.to_dict())
 
-@api.route("/plans", methods=["GET", "POST"])
+@api.route("/plans", methods=["GET"])
 def fetch_plans():
-    if request.method == "GET":
-        obj = {}
-        url = '/plans'
-        start = int(request.args.get('start', 1))
-        limit = int(request.args.get('limit', 10))
-        plans = Plan.query.all()
-        count = len(plans)
-        if(count < start):
-            return jsonify(obj)
-        obj["start"] = start
-        obj["limit"] = limit
-        obj["count"] = 1
-        if start == 1:
-            obj["previous"] = ''
-        else:
-            start_copy = max(1, start - limit)
-            limit_copy = start - 1
-            obj["previous"] = url + '?start=%d&limit=%d' % (start_copy, limit_copy)
-        if start + limit > count:
-            obj['next'] = ''
-        else:
-            start_copy = start + limit
-            obj['next'] = url + '?start=%d&limit=%d' % (start_copy, limit)
-        plans_data = [u.to_dict() for u in plans]
-        obj["plans"] = plans_data[(start - 1): (start - 1 + limit)]
-        return jsonify(obj) 
-    elif request.method == "POST":
-        data = request.get_json()
-        pay_participant = data["payment"] / data["participants_number"]
-        plan = Plan(
-            name = data["name"],
-            payment = data["payment"],
-            card_number = data["card_number"],
-            participants_number = data["participants_number"],
-            status = data["status"],
-            participants_pay = pay_participant,
-            type_pay = data["type_pay"],
-            owner_id = data["owner_id"],
-        )
-        db.session.add(plan)
-        db.session.commit()
-        return jsonify(plan.to_dict()), 201
+    obj = {}
+    url = '/plans'
+    start = int(request.args.get('start', 1))
+    limit = int(request.args.get('limit', 10))
+    plans = Plan.query.all()
+    count = len(plans)
+    if(count < start):
+        return jsonify(obj)
+    obj["start"] = start
+    obj["limit"] = limit
+    obj["count"] = 1
+    if start == 1:
+        obj["previous"] = ''
+    else:
+        start_copy = max(1, start - limit)
+        limit_copy = start - 1
+        obj["previous"] = url + '?start=%d&limit=%d' % (start_copy, limit_copy)
+    if start + limit > count:
+        obj['next'] = ''
+    else:
+        start_copy = start + limit
+        obj['next'] = url + '?start=%d&limit=%d' % (start_copy, limit)
+    plans_data = [u.to_dict() for u in plans]
+    obj["plans"] = plans_data[(start - 1): (start - 1 + limit)]
+    return jsonify(obj) 
+
+@api.route("/plans", methods=('POST',))
+@token_required
+def create_plan(current_user):
+    data = request.get_json()
+    pay_participant = data["payment"] / data["participants_number"]
+    plan = Plan(
+        name = data["name"],
+        payment = data["payment"],
+        card_number = data["card_number"],
+        participants_number = data["participants_number"],
+        status = data["status"],
+        participants_pay = pay_participant,
+        type_pay = data["type_pay"],
+        owner_id = data["owner_id"],
+    )
+    db.session.add(plan)
+    db.session.commit()
+    return jsonify(plan.to_dict()), 201
 
 @api.route("/plan/<int:id>/", methods=["GET", "PATCH"])
 def plan(id):
@@ -140,7 +186,7 @@ def add_participants(id):
         plan.users.append(user_id)
     db.session.commit()
     return jsonify(plan.to_dict())
-    
+
 @api.route("/remove/participants/<int:participant_id>/plan/<int:plan_id>", methods=["PATCH"])
 def remove_participants_plan(participant_id, plan_id):
     PlanUser.query.filter(PlanUser.plan_id==plan_id,PlanUser.user_id==participant_id).delete()
@@ -177,7 +223,7 @@ def fetch_pays():
         db.session.add(payment)
         db.session.commit()
         return jsonify(payment.to_dict()), 201
-
+ 
 @api.route("/payments_by_plan/<int:id>", methods=["GET"])
 def fetch_payments_by_plan(id):
     payments = Payment.query.filter(Payment.plan_id==id)
