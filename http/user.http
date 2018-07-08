@@ -1,0 +1,16 @@
+GET http://localhost:5000/api/user/1/
+
+
+GET http://localhost:5000/api/users
+
+
+POST http://localhost:5000/api/users HTTP/1.1
+content-type: application/json
+
+{
+	"name":"Roberto",
+	"last_name":"Cardenas",
+	"email": "rcardenas@gggmail.com",
+	"password":"123456",
+	"avatar":"https://http.cat/201"
+}

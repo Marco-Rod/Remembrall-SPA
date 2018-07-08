@@ -106,17 +106,18 @@ class Payment(db.Model):
     __tablename__ = "payments"
 
     id = db.Column(db.Integer, primary_key=True)
-    make_payments = db.Column(db.Boolean)
-    number_pays = db.Column(db.Integer)
-    payment_to = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    payment_month = db.Column(db.Text)
     participant_id = db.Column(db.Integer, ForeignKey("users.id"))
     plan_id = db.Column(db.Integer, ForeignKey("plans.id"))
+    participant = db.relationship("User", backref="user", lazy=False)
+    plan = db.relationship("Plan", backref="plan", lazy=False)
+
 
     def to_dict(self):
         return dict(
-            make_payments=self.make_payments,
-            number_payments=self.number_payments,
-            payment_to=self.payment_to,
-            participant=self.participant_id,
-            plan=self.plan_id,
+            created_at=self.created_at,
+            payment_month=self.payment_month,
+            participant={"id": self.participant.id, "name": self.participant.name},
+            plan={"id": self.plan.id, "name": self.plan.name},
         )

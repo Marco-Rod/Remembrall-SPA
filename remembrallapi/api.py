@@ -140,14 +140,45 @@ def add_participants(id):
         plan.users.append(user_id)
     db.session.commit()
     return jsonify(plan.to_dict())
+    
+@api.route("/remove/participants/<int:participant_id>/plan/<int:plan_id>", methods=["PATCH"])
+def remove_participants_plan(participant_id, plan_id):
+    PlanUser.query.filter(PlanUser.plan_id==plan_id,PlanUser.user_id==participant_id).delete()
+    db.session.commit()
+    plan = Plan.query.get(plan_id)
+    return jsonify({"plan": plan.to_dict()})
 
 @api.route("/payments", methods=["GET", "POST"])
 def fetch_pays():
     if request.method == "GET":
         payments = Payment.query.all()
         return jsonify({"payments": [p.to_dict() for p in payments]})
+    
+    elif request.method == "POST":
+        data = request.get_json()
+        if len(data["make_payment"]) > 1:
+            for pay in data["make_payment"]:
+                payment = Payment(
+                    created_at = data["created_at"],
+                    payment_month = pay,
+                    participant_id = data["participant"],
+                    plan_id = data["plan"],
+                )
+                db.session.add(payment)
+                db.session.commit()
+        else:
+            payment = Payment(
+                created_at = data["created_at"],
+                payment_month = data["make_payment"],
+                participant_id = data["participant"],
+                plan_id = data["plan"],
+            )
 
-@api.route("/payment/<int:id>/", methods=["GET"])
-def pay(id):
-    payment = Payment.query.get(id)
-    return jsonify({"payment": pay.to_dict()})
+        db.session.add(payment)
+        db.session.commit()
+        return jsonify(payment.to_dict()), 201
+
+@api.route("/payments_by_plan/<int:id>", methods=["GET"])
+def fetch_payments_by_plan(id):
+    payments = Payment.query.filter(Payment.plan_id==id)
+    return jsonify([p.to_dict() for p in payments], 201)
