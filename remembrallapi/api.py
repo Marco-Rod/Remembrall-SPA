@@ -15,7 +15,6 @@ def token_required(f):
     @wraps(f)
     def _verify(*args, **kwargs):
         auth_headers = request.headers.get('Authorization','').split()
-
         invalid_msg = {
             'message': 'Invalid token. Registerarion and / or authentication required',
             'authenticated': False
@@ -30,6 +29,7 @@ def token_required(f):
         try:
             token = auth_headers[1]
             data = jwt.decode(token, BaseConfig.SECRET_KEY)
+            print(data)
             user = User.query.filter_by(email=data['sub']).first()
             if not user:
                 raise RuntimeError('User not found')
@@ -45,6 +45,7 @@ def token_required(f):
 def register():
     data = request.get_json(silent=True)
     user = User(
+        name=data["name"],
         email=data["email"],
         password=data["password"],
     )

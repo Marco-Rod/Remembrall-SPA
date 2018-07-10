@@ -52,10 +52,12 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     
-    def __init__(self, email, password):
+    def __init__(self, email, password, name):
+        self.name = name
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
 
@@ -93,7 +95,6 @@ class Plan(db.Model):
     # pays = db.relationship('Plan', backref='pay', lazy=False)
 
     def to_dict(self):
-        print(self.owner.name)
         return dict(
             name=self.name,
             date_on=self.date_on,
@@ -105,7 +106,7 @@ class Plan(db.Model):
             type_pay=str(self.type_pay),
             owner_id=self.owner_id,
             users=[user.to_dict() for user in self.users],
-            owner={"id": self.owner.id, "name": self.owner.name},
+            owner={"id": self.owner.id, "email": self.owner.email},
         )
 
 
@@ -125,6 +126,6 @@ class Payment(db.Model):
         return dict(
             created_at=self.created_at,
             payment_month=self.payment_month,
-            participant={"id": self.participant.id, "name": self.participant.name},
-            plan={"id": self.plan.id, "name": self.plan.name},
+            participant={"id": self.participant.id, "name": self.participant.email},
+            plan={"id": self.plan.id, "name": self.plan.email},
         )
