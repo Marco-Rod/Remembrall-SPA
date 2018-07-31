@@ -127,5 +127,5 @@ class Payment(db.Model):
             created_at=self.created_at,
             payment_month=self.payment_month,
             participant={"id": self.participant.id, "name": self.participant.email},
-            plan={"id": self.plan.id, "name": self.plan.email},
+            plan={"id": self.plan.id, "name": self.plan.name},
         )

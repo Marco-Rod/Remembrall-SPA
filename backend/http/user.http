@@ -1,0 +1,86 @@
+GET http://localhost:5000/api/user/8/
+
+###
+GET http://localhost:5000/api/users
+
+###
+POST http://localhost:5000/api/plans HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAwNjY3LCJleHAiOjE1MzE2MDI0Njd9.IVNNPqvnBbLbENzYncjv0cytEbMdfcKcH9LL0SeQPks
+
+{
+	"name":"Youtube Music",
+	"payment": 150.00,
+	"card_number":"123456789011",
+	"participants_number": 6,
+	"status": true,
+	"participants_pay":"25",
+	"type_pay": 1,
+	"owner_id": 6
+}
+###
+POST http://localhost:5000/api/payments HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAwNjY3LCJleHAiOjE1MzE2MDI0Njd9.IVNNPqvnBbLbENzYncjv0cytEbMdfcKcH9LL0SeQPks
+
+{
+	"created_at":"2018-05-10",
+	"make_payment": ["Enero","Febrero","Marzo"],
+	"participant": 8,
+	"plan":8
+}
+###
+POST http://localhost:5000/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+	"email": "mrc5622@outlook.com",
+	"password":"marco"
+}
+###
+POST http://localhost:5000/api/register HTTP/1.1
+Content-Type: application/json
+{
+	"email": "mrc5622@outlook.com",
+	"password":"marco",
+	"name": "Marco Antonio Rodriguez Torres"
+
+}
+
+
+PATCH http://localhost:5000/api/plan/1/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAwNjY3LCJleHAiOjE1MzE2MDI0Njd9.IVNNPqvnBbLbENzYncjv0cytEbMdfcKcH9LL0SeQPks
+
+{
+	"name":"Spotify Familiar",
+	"payment": 150.00,
+	"card_number":"123456789011",
+	"participants_number": 6,
+	"status": true,
+	"participants_pay":"25",
+	"type_pay": 1,
+	"owner_id": 1
+}
+###
+
+PATCH http://localhost:5000/api/plan/11/add_participants/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAyODM5LCJleHAiOjE1MzE2MDQ2Mzl9.ksXPMqvTGC05TNsqHPUEPkZLV_Ys7D4Nlg5DVOWz0bw
+
+{
+	"id":[6]
+}
+###
+PATCH http://localhost:5000/api/remove/participants/6/plan/11 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAyODM5LCJleHAiOjE1MzE2MDQ2Mzl9.ksXPMqvTGC05TNsqHPUEPkZLV_Ys7D4Nlg5DVOWz0bw
+###
+PATCH http://localhost:5000/api/user/6/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtcmM1NjIyQG91dGxvb2suY29tIiwiaWF0IjoxNTMxNjAyODM5LCJleHAiOjE1MzE2MDQ2Mzl9.ksXPMqvTGC05TNsqHPUEPkZLV_Ys7D4Nlg5DVOWz0bw
+
+{
+	"email": "mrc5622@latinchat.com"
+}
+###
